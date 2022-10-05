@@ -4,8 +4,6 @@ go 1.18
 
 require github.com/gin-gonic/gin v1.8.1
 
-replace github.com/Ferlab-Ste-Justine/etcd-sdk => /home/eric/Projects/etcd-sdk
-
 require (
 	github.com/Ferlab-Ste-Justine/etcd-sdk v0.1.0
 	gopkg.in/yaml.v2 v2.4.0
