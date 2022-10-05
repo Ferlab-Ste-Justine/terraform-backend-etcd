@@ -7,6 +7,7 @@ import (
 	"os"
 	"time"
 	yaml "gopkg.in/yaml.v2"
+	"github.com/gin-gonic/gin"
 )
 
 type ConfigEtcdCerts struct {
@@ -29,9 +30,9 @@ type ConfigLock struct {
 }
 
 type ConfigServer struct {
-	Port    int64
-	Address string
-	Auth    map[string]string
+	Port      int64
+	Address   string
+	BasicAuth string `yaml:"basic_auth"`
 }
 
 type Config struct {
@@ -89,4 +90,22 @@ func getConfig() (Config, error) {
 	}
 
 	return c, nil
+}
+
+func getAccounts(conf Config) (gin.Accounts, error) {
+	var accounts gin.Accounts
+	if conf.Server.BasicAuth == "" {
+		return accounts, nil
+	}
+
+	b, err := ioutil.ReadFile(conf.Server.BasicAuth)
+	if err != nil {
+		return accounts, errors.New(fmt.Sprintf("Error reading the basic auth file: %s", err.Error()))
+	}
+	err = yaml.Unmarshal(b, &accounts)
+	if err != nil {
+		return accounts, errors.New(fmt.Sprintf("Error parsing the basic auth file: %s", err.Error()))
+	}
+
+	return accounts, nil
 }

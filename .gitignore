@@ -1,5 +1,6 @@
 certs/
 config.yml
+basic_auth.yml
 troubleshoot.sh
 terraform-backend-etcd
 test-environment/.terraform

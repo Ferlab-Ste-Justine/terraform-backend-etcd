@@ -6,5 +6,7 @@ terraform {
     lock_address = "http://127.0.0.1:14443/lock?state=%2Ftest%2Fstate"
     unlock_method = "DELETE"
     unlock_address = "http://127.0.0.1:14443/lock?state=%2Ftest%2Fstate"
+    username = "test"
+    password = "test"
   }
 }

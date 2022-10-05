@@ -29,16 +29,18 @@ Your backend declaration will look like this (yes, encoding part of the resource
 terraform {
   backend "http" {
     update_method = "PUT"
-    address = "<http|https>://<url>:<port>/state?state=${urlencode("<state etcd prefix>")}"
+    address = "<http|https>://<url>:<port>/state?state=<url encoded state etcd prefix>"
     lock_method = "PUT"
-    lock_address = "<http|https>://<url>:<port>/lock?state=${urlencode("<state etcd prefix>")}&lease_ttl=<deadline to release lock>"
+    lock_address = "<http|https>://<url>:<port>/lock?state=<url encoded state etcd prefix>&lease_ttl=<deadline to release lock>"
     unlock_method = "DELETE"
-    unlock_address = "<http|https>://<url>:<port>/lock?state=${urlencode("<state etcd prefix>")}"
+    unlock_address = "<http|https>://<url>:<port>/lock?state=<url encoded state etcd prefix>"
+    username = "<basic auth username if you use it, else omit>"
+    password = "<basic auth password if you use it, else omit>"
   }
 }
 ```
 
-Then, you will have a configuration file for the backend that looks like this:
+Then, you will have a configuration file for the server that looks like this:
 
 ```
 server:
@@ -53,4 +55,13 @@ etcd_client:
     ca_cert: "<path to etcd ca cert>"
     client_cert: "<path to the client cert to authentify with etcd>"
     client_key: "<path to the client private key to authentify with etcd>"
+    basic_auth: "<path to yaml basic auth file>"
+```
+
+If you are using basic auth, you will also have a basic auth file that looks like this:
+
+```
+<username1>: <password1>
+<username2>: <password2>
+...
 ```
