@@ -105,7 +105,6 @@ func main() {
 		})
 	})
 
-	//TODO
 	router.GET("/state", func(c *gin.Context) {
 		state := c.Query("state")
 		if state == "" {
@@ -116,9 +115,26 @@ func main() {
 		}
 
 		state = fmt.Sprintf("%s/state", state)
-		c.JSON(http.StatusOK, gin.H{
-			"state": state,
-		})
+		payload, getErr := cli.GetChunkedKey(state)
+		if getErr != nil {
+			c.JSON(http.StatusInternalServerError, gin.H{
+				"status": "error",
+				"error": getErr.Error(),
+			})
+			return
+		}
+
+		//No data
+		if payload == nil {
+			c.JSON(http.StatusNotFound, gin.H{
+				"status": "not found",
+			})
+			return
+		}
+
+		defer payload.Close()
+		c.DataFromReader(http.StatusOK, payload.Size, "application/json", payload, map[string]string{}) 
+
 	})
 
 	router.PUT("/state", func(c *gin.Context) {
