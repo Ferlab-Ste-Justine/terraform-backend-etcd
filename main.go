@@ -32,6 +32,10 @@ func main() {
 	}
 	defer cli.Close()
 
+	if !config.Server.DebugMode {
+		gin.SetMode(gin.ReleaseMode)
+	}
+
 	handlers := GetHandlers(config, cli)
 	accounts, accountsErr := getAccounts(config)
 	if accountsErr != nil {

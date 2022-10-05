@@ -39,6 +39,7 @@ type ConfigServer struct {
 	Address   string
 	BasicAuth string `yaml:"basic_auth"`
 	Tls       ConfigServerTls
+	DebugMode bool   `yaml:"debug_mode"`
 }
 
 type Config struct {

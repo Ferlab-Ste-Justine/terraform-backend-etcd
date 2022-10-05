@@ -79,7 +79,7 @@ For terraform work not benefiting from such fine-grained networking segmentation
 
 State between requests (the lock really) is persisted in etcd, not in the memory of the backend instance, so you can load balance traffic safely across several instances of the backend.
 
-## Security and Load Balancing Considerations
+## Security
 
 To run the backend security, you'll need to use basic auth and a tls certificate/key pair for the server.
 
