@@ -2,3 +2,7 @@ certs/
 config.yml
 troubleshoot.sh
 terraform-backend-etcd
+test-environment/.terraform
+test-environment/output
+test-environment/.terraform.lock.hcl
+test-environment/errored.tfstate
