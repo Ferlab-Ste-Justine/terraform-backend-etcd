@@ -8,7 +8,7 @@ import (
   "strings"
 
   "github.com/Ferlab-Ste-Justine/etcd-sdk/client"
-  _ "github.com/Ferlab-Ste-Justine/etcd-sdk/keymodels"
+  "github.com/Ferlab-Ste-Justine/etcd-sdk/keymodels"
   "github.com/gin-gonic/gin"
 )
 
@@ -115,12 +115,12 @@ func main() {
 			return		
 		}
 
+		state = fmt.Sprintf("%s/state", state)
 		c.JSON(http.StatusOK, gin.H{
 			"state": state,
 		})
 	})
 
-	//TODO
 	router.PUT("/state", func(c *gin.Context) {
 		state := c.Query("state")
 		if state == "" {
@@ -130,12 +130,25 @@ func main() {
 			return		
 		}
 
+		state = fmt.Sprintf("%s/state", state)
+		putErr := cli.PutChunkedKey(&keymodels.ChunkedKeyPayload{
+			Key: state,
+			Value: c.Request.Body,
+			Size: c.Request.ContentLength,
+		})
+		if putErr != nil {
+			c.JSON(http.StatusInternalServerError, gin.H{
+				"status": "error",
+				"error": putErr.Error(),
+			})
+			return
+		}
+
 		c.JSON(http.StatusOK, gin.H{
 			"state": state,
 		})
 	})
 
-	//TODO
 	router.DELETE("/state", func(c *gin.Context) {
 		state := c.Query("state")
 		if state == "" {
@@ -143,6 +156,16 @@ func main() {
 				"error": "State query parameter is missing",
 			})
 			return		
+		}
+
+		state = fmt.Sprintf("%s/state", state)
+		deleteErr := cli.DeleteChunkedKey(state)
+		if deleteErr != nil {
+			c.JSON(http.StatusInternalServerError, gin.H{
+				"status": "error",
+				"error": deleteErr.Error(),
+			})
+			return
 		}
 
 		c.JSON(http.StatusOK, gin.H{
