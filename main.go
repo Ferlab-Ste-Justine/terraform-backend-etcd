@@ -56,5 +56,10 @@ func main() {
 		router.DELETE("/state", handlers.DeleteState)
 	}
 
-  	router.Run(fmt.Sprintf("%s:%d", config.Server.Address, config.Server.Port))
+	serverBinding := fmt.Sprintf("%s:%d", config.Server.Address, config.Server.Port)
+	if config.Server.Tls.Certificate == "" {
+		router.Run(serverBinding)
+	} else {
+		router.RunTLS(serverBinding, config.Server.Tls.Certificate, config.Server.Tls.Key)
+	}
 }

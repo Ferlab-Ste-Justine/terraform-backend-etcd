@@ -29,10 +29,16 @@ type ConfigLock struct {
 	RetryInterval time.Duration `yaml:"retry_interval"`
 }
 
+type ConfigServerTls struct {
+	Certificate string
+	Key         string
+}
+
 type ConfigServer struct {
 	Port      int64
 	Address   string
 	BasicAuth string `yaml:"basic_auth"`
+	Tls       ConfigServerTls
 }
 
 type Config struct {

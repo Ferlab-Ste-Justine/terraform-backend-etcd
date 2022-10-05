@@ -8,7 +8,7 @@ This repo means to remedy both those thigs and provide you with the etcd terrafo
 
 # Why Etcd as a Terraform Backend
 
-I believe the appeal is mostly for those wanting to take advantage of some of the advances in the cloud, but with an on-premise setup.
+We believe the appeal is mostly for those wanting to take advantage of some of the advances in the cloud, but with an on-premise setup.
 
 If you are on the cloud, the answer is that you should probably go with an existing backend for your cloud provider if there is one.
 
@@ -46,16 +46,19 @@ Then, you will have a configuration file for the server that looks like this:
 server:
   port: <port to bind the http server on>
   address: "<address to bind the http server on>"
+  auth:
+    ca_cert: "<path to etcd ca cert>"
+    client_cert: "<path to the client cert to authentify with etcd>"
+    client_key: "<path to the client private key to authentify with etcd>"
+    basic_auth: "<path to yaml basic auth file if you want basic auth>"
+  tls:
+    certificate: <Path to server certificate if you want to use tls>
+    key: <Path to server key if you want to use tls>
 etcd_client:
   endpoints: "<etcd1 url>:<etcd1 port>,<etcd2 url>:<etcd2 port>,..."
   connection_timeout: "<connection timeout on etcd as golang duration string. Put at least a minute>"
   request_timeout: "<request timeout on etcd as golang duration string. Put at least a minute>"
   retries: <number of times to retry>
-  auth:
-    ca_cert: "<path to etcd ca cert>"
-    client_cert: "<path to the client cert to authentify with etcd>"
-    client_key: "<path to the client private key to authentify with etcd>"
-    basic_auth: "<path to yaml basic auth file>"
 ```
 
 If you are using basic auth, you will also have a basic auth file that looks like this:
@@ -65,3 +68,21 @@ If you are using basic auth, you will also have a basic auth file that looks lik
 <username2>: <password2>
 ...
 ```
+
+# Runtime Considerations
+
+For the terraform infra you are managing from kubernetes jobs, it probably makes the most sense to just run this backend as a sidecar to your main terraform pod in which case secure access to the backend server is not much of a concern.
+
+For terraform work not benefiting from such fine-grained networking segmentation, it probably makes sense to run the backend in a more centralised way in which case the following considerations will pop up.
+
+## Load Balancing
+
+State between requests (the lock really) is persisted in etcd, not in the memory of the backend instance, so you can load balance traffic safely across several instances of the backend.
+
+## Security and Load Balancing Considerations
+
+To run the backend security, you'll need to use basic auth and a tls certificate/key pair for the server.
+
+Assuming you use an internal certificate, the problem of the server certificate validation will surface.
+
+While you can disable server certificate validation in the terraform backend configuration, we do not recommend this. Instead, you can install the certificate of the CA used to sign your server certificate in the operating system trusted store and terraform should honor it (validated on Ubuntu Linux)
