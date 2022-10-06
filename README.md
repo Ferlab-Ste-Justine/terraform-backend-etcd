@@ -86,3 +86,30 @@ To run the backend security, you'll need to use basic auth and a tls certificate
 Assuming you use an internal certificate, the problem of the server certificate validation will surface.
 
 While you can disable server certificate validation in the terraform backend configuration, we do not recommend this. Instead, you can install the certificate of the CA used to sign your server certificate in the operating system trusted store and terraform should honor it (validated on Ubuntu Linux)
+
+# Key Storage Convention
+
+Assuming that you pass a state key value of `<key>`:
+- The metadata info for the state will be stored in `<key>/info`
+- chunk number `Y` of version `X` will be stored in `<key>/state/v<X>/<Y-1>`
+
+On state persistence failure, it is possible that the next version after the current version has populated values from the failure. These will be cleared on the next successful state storage.
+
+When a successful state storage happens, the chunks of the previous version are deleted. This is done as part of a transaction and is guaranteed to happen.
+
+# Legacy Migration Support
+
+To facilitate state migration from the legacy terraform etcd provider with automation, the previous format is supported with the following boolean flags in the configuration:
+
+```
+legacy_support:
+  read: Whether is should look for a legacy state if the state is not found
+  clear: Whether is should look for and clear a legacy state when the state is successfully persisted
+  slash_support: Whether is should add a slash to the state key when trying to find the legacy state
+```
+
+The last option might be puzzling, until you realise that if the etcd key prefix was `<key>`, the legacy terraform backend would put the state in `<key>default`.
+
+So assuming that you wanted a state with the format `/terraform/backend/...`, with the legacy backend, you would declare the key prefix `/terraform/backend/`, but with this backend, you would declare the key prefix `/terraform/backend` as it will add further slashes for you.
+
+Anyways, you can always start with a plan and look at the logs. The backend will indicate in the logs when the state is read from the legacy location and it will also indicate when it cleared the legacy state after a successful state update.

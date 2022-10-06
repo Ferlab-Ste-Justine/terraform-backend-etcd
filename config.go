@@ -42,10 +42,17 @@ type ConfigServer struct {
 	DebugMode bool   `yaml:"debug_mode"`
 }
 
+type ConfigLegacySupport struct {
+	Read     bool
+	Clear    bool
+	AddSlash bool `yaml:"add_slash"`
+}
+
 type Config struct {
 	EtcdClient     ConfigEtcdClient `yaml:"etcd_client"`
 	Lock    	   ConfigLock
 	Server         ConfigServer
+	LegacySupport  ConfigLegacySupport `yaml:"legacy_support"`
 }
 
 func getConfigFilePath() string {

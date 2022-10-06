@@ -2,13 +2,70 @@ package main
 
 import (
   "fmt"
+  "io"
   "net/http"
   "strconv"
+  "strings"
 
   "github.com/Ferlab-Ste-Justine/etcd-sdk/client"
   "github.com/Ferlab-Ste-Justine/etcd-sdk/keymodels"
   "github.com/gin-gonic/gin"
 )
+
+func getLegacyStatePath(state string, config Config) string {
+	if config.LegacySupport.AddSlash {
+		return fmt.Sprintf("%s/default", state)
+	}
+
+	return fmt.Sprintf("%sdefault", state)
+}
+
+func getLegacyState(c *gin.Context, cli *client.EtcdClient, config Config) {
+	statePath := getLegacyStatePath(c.Query("state"), config)
+
+	keyInfo, keyExists, keyErr := cli.GetKey(statePath)
+	if keyErr != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{
+			"status": "error",
+			"error": keyErr.Error(),
+		})
+		return	
+	}
+	if !keyExists {
+		c.JSON(http.StatusNotFound, gin.H{
+			"status": "not found",
+		})
+		return
+	}
+
+	fmt.Printf("Reading from legacy state at: %s\n", statePath)
+	c.DataFromReader(
+		http.StatusOK,
+		int64(len(keyInfo.Value)),
+		"application/json",
+		io.NopCloser(strings.NewReader(keyInfo.Value)),
+		map[string]string{},
+	)
+}
+
+func clearLegacyState(c *gin.Context, cli *client.EtcdClient, config Config) {
+	statePath := getLegacyStatePath(c.Query("state"), config)
+	_, keyExists, keyErr := cli.GetKey(statePath)
+	if keyErr != nil {
+		fmt.Printf("Could not check for legacy state: %s\n", keyErr.Error())
+		return
+	}
+	if !keyExists {
+		return
+	}
+
+	fmt.Printf("Clearing legacy state found at: %s\n", statePath)
+	deleteErr := cli.DeleteKey(statePath)
+	if deleteErr != nil {
+		fmt.Printf("Could not clear legacy state: %s\n", deleteErr.Error())
+		return
+	}
+}
 
 type Handlers struct{
 	AcquireLock gin.HandlerFunc
@@ -110,6 +167,10 @@ func GetHandlers(config Config, cli *client.EtcdClient) Handlers {
 			return
 		}
 
+		if config.LegacySupport.Clear {
+			clearLegacyState(c, cli, config)
+		}
+
 		c.JSON(http.StatusOK, gin.H{
 			"state": state,
 		})
@@ -136,6 +197,11 @@ func GetHandlers(config Config, cli *client.EtcdClient) Handlers {
 
 		//No data
 		if payload == nil {
+			if config.LegacySupport.Read {
+				getLegacyState(c, cli, config)
+				return
+			}
+
 			c.JSON(http.StatusNotFound, gin.H{
 				"status": "not found",
 			})
