@@ -1,0 +1,7 @@
+basic_auth.yml
+config.yml
+certs/*
+test-environment/*
+.github/*
+terraform-backend-etcd
+troubleshoot.sh
