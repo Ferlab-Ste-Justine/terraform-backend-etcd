@@ -1,11 +1,14 @@
 package main
 
 import (
-  "fmt"
-  "os"
+	"context"
+  	"fmt"
+  	"net/http"
+  	"os"
+	"time"
 
-  "github.com/Ferlab-Ste-Justine/etcd-sdk/client"
-  "github.com/gin-gonic/gin"
+  	"github.com/Ferlab-Ste-Justine/etcd-sdk/client"
+  	"github.com/gin-gonic/gin"
 )
 
 func main() {
@@ -35,7 +38,6 @@ func main() {
 		gin.SetMode(gin.ReleaseMode)
 	}
 
-	handlers := GetHandlers(config, cli)
 	accounts, accountsErr := getAccounts(config)
 	if accountsErr != nil {
 		fmt.Println(accountsErr.Error())
@@ -43,6 +45,12 @@ func main() {
 	}
 
 	router := gin.Default()
+	server := &http.Server{
+		Addr:    fmt.Sprintf("%s:%d", config.Server.Address, config.Server.Port),
+		Handler: router,
+	}
+
+	handlers, terminateCh := GetHandlers(config, cli)
 
 	if len(accounts) > 0 {
 		authorized := router.Group("/", gin.BasicAuth(accounts))
@@ -65,10 +73,33 @@ func main() {
 		}
 	}
 
-	serverBinding := fmt.Sprintf("%s:%d", config.Server.Address, config.Server.Port)
-	if config.Server.Tls.Certificate == "" {
-		router.Run(serverBinding)
-	} else {
-		router.RunTLS(serverBinding, config.Server.Tls.Certificate, config.Server.Tls.Key)
+	go func() {
+		if config.Server.Tls.Certificate == "" {
+			serverErr := server.ListenAndServe()
+			if serverErr != nil && serverErr != http.ErrServerClosed {
+				fmt.Println(serverErr.Error())
+				os.Exit(1)	
+			}
+		} else {
+			serverErr := server.ListenAndServeTLS(config.Server.Tls.Certificate, config.Server.Tls.Key)
+			if serverErr != nil && serverErr != http.ErrServerClosed {
+				fmt.Println(serverErr.Error())
+				os.Exit(1)	
+			}
+		}
+
+	}()
+
+	<-terminateCh
+	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+	defer cancel()
+
+	shutdownErr := server.Shutdown(ctx)
+	if shutdownErr != nil {
+		fmt.Println(shutdownErr.Error())
+		os.Exit(1)
 	}
+
+	os.Exit(0)
+
 }

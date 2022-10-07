@@ -4,7 +4,6 @@ import (
   "fmt"
   "io"
   "net/http"
-  "os"
   "strconv"
   "strings"
 
@@ -77,7 +76,9 @@ type Handlers struct{
 	Terminate   gin.HandlerFunc
 }
 
-func GetHandlers(config Config, cli *client.EtcdClient) Handlers {
+func GetHandlers(config Config, cli *client.EtcdClient) (Handlers, <-chan struct{}) {
+	terminateCh := make(chan struct{})
+	
 	acquireLock := func(c *gin.Context) {
 		state := c.Query("state")
 		if state == "" {
@@ -239,12 +240,13 @@ func GetHandlers(config Config, cli *client.EtcdClient) Handlers {
 	}
 
 	terminate := func(c *gin.Context) {
+		fmt.Println("Termination triggered via api")
+
 		c.JSON(http.StatusOK, gin.H{
 			"status": "ok",
 		})
 
-		fmt.Println("Termination triggered via api")
-		os.Exit(0)
+		terminateCh <- struct{}{}
 	}
 
 	return Handlers{
@@ -254,5 +256,5 @@ func GetHandlers(config Config, cli *client.EtcdClient) Handlers {
 		GetState:    getState,
 		DeleteState: deleteState,
 		Terminate:   terminate,
-	}
+	}, terminateCh
 }
