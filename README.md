@@ -55,10 +55,14 @@ server:
     certificate: <Path to server certificate if you want to use tls>
     key: <Path to server key if you want to use tls>
 etcd_client:
-  endpoints: "<etcd1 url>:<etcd1 port>,<etcd2 url>:<etcd2 port>,..."
+  endpoints: 
+    - "<etcd1 url>:<etcd1 port>"
+    - "<etcd2 url>:<etcd2 port>"
+    ...
   connection_timeout: "<connection timeout on etcd as golang duration string. Put at least a minute>"
   request_timeout: "<request timeout on etcd as golang duration string. Put at least a minute>"
   retries: <number of times to retry>
+remote_termination: <bool flag indicating whether process can be terminated via rest api>
 ```
 
 If you are using basic auth, you will also have a basic auth file that looks like this:
@@ -86,6 +90,14 @@ To run the backend security, you'll need to use basic auth and a tls certificate
 Assuming you use an internal certificate, the problem of the server certificate validation will surface.
 
 While you can disable server certificate validation in the terraform backend configuration, we do not recommend this. Instead, you can install the certificate of the CA used to sign your server certificate in the operating system trusted store and terraform should honor it (validated on Ubuntu Linux)
+
+## Sidecar Usage
+
+To more easily run this service in a sidecar in a terraform job, you can enable remote termination via an endpoint.
+
+This will allow the main terraform job to terminate the service via a call to its api when it is done.
+
+The call should be to: `POST /termination`
 
 # Key Storage Convention
 

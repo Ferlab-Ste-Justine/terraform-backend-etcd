@@ -4,6 +4,7 @@ import (
   "fmt"
   "io"
   "net/http"
+  "os"
   "strconv"
   "strings"
 
@@ -73,6 +74,7 @@ type Handlers struct{
 	UpsertState gin.HandlerFunc
 	GetState    gin.HandlerFunc
 	DeleteState gin.HandlerFunc
+	Terminate   gin.HandlerFunc
 }
 
 func GetHandlers(config Config, cli *client.EtcdClient) Handlers {
@@ -236,11 +238,21 @@ func GetHandlers(config Config, cli *client.EtcdClient) Handlers {
 		})
 	}
 
+	terminate := func(c *gin.Context) {
+		c.JSON(http.StatusOK, gin.H{
+			"status": "ok",
+		})
+
+		fmt.Println("Termination triggered via api")
+		os.Exit(0)
+	}
+
 	return Handlers{
 		AcquireLock: acquireLock,
 		ReleaseLock: releaseLock,
 		UpsertState: upsertState,
 		GetState:    getState,
 		DeleteState: deleteState,
+		Terminate:   terminate,
 	}
 }

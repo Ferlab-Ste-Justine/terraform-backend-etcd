@@ -17,7 +17,7 @@ type ConfigEtcdCerts struct {
 }
 
 type ConfigEtcdClient struct {
-	Endpoints         string
+	Endpoints         []string
 	ConnectionTimeout time.Duration	`yaml:"connection_timeout"`
 	RequestTimeout    time.Duration `yaml:"request_timeout"`
 	Retries           uint64
@@ -37,9 +37,9 @@ type ConfigServerTls struct {
 type ConfigServer struct {
 	Port      int64
 	Address   string
-	BasicAuth string `yaml:"basic_auth"`
+	BasicAuth string          `yaml:"basic_auth"`
 	Tls       ConfigServerTls
-	DebugMode bool   `yaml:"debug_mode"`
+	DebugMode bool            `yaml:"debug_mode"`
 }
 
 type ConfigLegacySupport struct {
@@ -49,10 +49,11 @@ type ConfigLegacySupport struct {
 }
 
 type Config struct {
-	EtcdClient     ConfigEtcdClient `yaml:"etcd_client"`
-	Lock    	   ConfigLock
-	Server         ConfigServer
-	LegacySupport  ConfigLegacySupport `yaml:"legacy_support"`
+	EtcdClient         ConfigEtcdClient    `yaml:"etcd_client"`
+	Lock    	       ConfigLock
+	Server             ConfigServer
+	LegacySupport      ConfigLegacySupport `yaml:"legacy_support"`
+	RemoteTerminiation bool                `yaml:"remote_termination"`
 }
 
 func getConfigFilePath() string {
@@ -75,7 +76,7 @@ func getConfig() (Config, error) {
 		return c, errors.New(fmt.Sprintf("Error parsing the configuration file: %s", err.Error()))
 	}
 
-	if c.EtcdClient.Endpoints == "" {
+	if len(c.EtcdClient.Endpoints) == 0 {
 		return c, errors.New("No etcd endpoint specified in the configuration")
 	}
 
