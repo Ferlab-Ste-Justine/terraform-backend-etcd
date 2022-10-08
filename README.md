@@ -1,6 +1,6 @@
 # About
 
-We use etcd v3 quite a bit here for our operations and have wanted better support for etcd as a backend to terraform (and provider, which we also did in another project) for some sometime.
+We use etcd v3 quite a bit here for our operations and have wanted better support for etcd as a backend to terraform (and provider, which we also did in another project) for some time.
 
 The deprecation sectre loomed on the official etcd backend for a while and it finally got deprecated in Terraform version 1.3.
 
