@@ -1,9 +1,10 @@
-certs/
-config.yml
-basic_auth.yml
 troubleshoot.sh
 terraform-backend-etcd
-test-environment/.terraform
-test-environment/output
-test-environment/.terraform.lock.hcl
-test-environment/errored.tfstate
+test-environment/*/.terraform
+test-environment/*/output
+test-environment/*/.terraform.lock.hcl
+test-environment/*/errored.tfstate
+test-environment/*/local.tfvars
+test-environment/*/certs
+test-environment/*/terraform.tfstate
+test-environment/*/terraform.tfstate.backup

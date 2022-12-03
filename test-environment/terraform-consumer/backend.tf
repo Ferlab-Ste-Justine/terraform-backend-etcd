@@ -13,11 +13,11 @@ terraform {
 
 /*terraform {
   backend "etcdv3" {
-    endpoints   = ["127.0.0.1:32379"]
+    endpoints   = ["127.0.0.1:32380"]
     lock        = true
     prefix      = "/test/state/"
-    cacert_path = "../certs/ca.pem"
-    cert_path   = "../certs/root.pem"
-    key_path    = "../certs/root.key"
+    cacert_path = "../etcd-server/certs/ca.pem"
+    cert_path   = "../etcd-server/certs/root.pem"
+    key_path    = "../etcd-server/certs/root.key"
   }
 }*/

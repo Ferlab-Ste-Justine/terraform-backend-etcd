@@ -48,14 +48,11 @@ Then, you will have a configuration file for the server that looks like this:
 server:
   port: <port to bind the http server on>
   address: "<address to bind the http server on>"
-  auth:
-    ca_cert: "<path to etcd ca cert>"
-    client_cert: "<path to the client cert to authentify with etcd>"
-    client_key: "<path to the client private key to authentify with etcd>"
-    basic_auth: "<path to yaml basic auth file if you want basic auth>"
+  basic_auth: "<path to yaml basic auth file if you want basic auth>"
   tls:
     certificate: <Path to server certificate if you want to use tls>
     key: <Path to server key if you want to use tls>
+  debug_mode: <whether to output debug logs>
 etcd_client:
   endpoints: 
     - "<etcd1 url>:<etcd1 port>"
@@ -64,6 +61,10 @@ etcd_client:
   connection_timeout: "<connection timeout on etcd as golang duration string. Put at least a minute>"
   request_timeout: "<request timeout on etcd as golang duration string. Put at least a minute>"
   retries: <number of times to retry>
+  auth:
+    ca_cert: "<path to etcd ca cert>"
+    client_cert: "<path to the client cert to authentify with etcd>"
+    client_key: "<path to the client private key to authentify with etcd>"
 remote_termination: <bool flag indicating whether process can be terminated via rest api>
 ```
 
@@ -74,6 +75,10 @@ If you are using basic auth, you will also have a basic auth file that looks lik
 <username2>: <password2>
 ...
 ```
+
+# Testing Locally
+
+See the README in the **test-environment** directory.
 
 # Runtime Considerations
 

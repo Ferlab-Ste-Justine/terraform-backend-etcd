@@ -1,0 +1,23 @@
+server:
+  port: 14443
+  address: "127.0.0.1"
+  basic_auth: "basic_auth.yml"
+  tls:
+    certificate: "../localhost-certs/certs/local_server.crt"
+    key: "../localhost-certs/certs/local_server.key"
+  debug_mode: true
+etcd_client:
+  endpoints: 
+    - "127.0.0.1:32380"
+  connection_timeout: "10s"
+  request_timeout: "10s"
+  retries: 5
+  auth:
+    ca_cert: "../etcd-server/certs/ca.pem"
+    client_cert: "../etcd-server/certs/root.pem"
+    client_key: "../etcd-server/certs/root.key"
+legacy_support:
+  read: true
+  clear: true
+  add_slash: true
+remote_termination: true
