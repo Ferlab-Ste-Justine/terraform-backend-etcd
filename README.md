@@ -60,11 +60,13 @@ etcd_client:
     ...
   connection_timeout: "<connection timeout on etcd as golang duration string. Put at least a minute>"
   request_timeout: "<request timeout on etcd as golang duration string. Put at least a minute>"
+  retry_interval: "<interval of time to wait between retries as golang duration string>"
   retries: <number of times to retry>
   auth:
     ca_cert: "<path to etcd ca cert>"
-    client_cert: "<path to the client cert to authentify with etcd>"
-    client_key: "<path to the client private key to authentify with etcd>"
+    client_cert: "<path to the client cert to authentify with etcd if certificat authentication is used>"
+    client_key: "<path to the client private key to authentify with etcd if certificat authentication is used>"
+    password_auth: "<path to a yaml file containing 'username' and 'password' keys if password authentication is used>"
 remote_termination: <bool flag indicating whether process can be terminated via rest api>
 ```
 

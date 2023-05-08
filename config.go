@@ -10,18 +10,27 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-type ConfigEtcdCerts struct {
-	CaCert 	   string `yaml:"ca_cert"`
-	ClientCert string `yaml:"client_cert"`
-	ClientKey  string `yaml:"client_key"`
+type EtcdPasswordAuth struct {
+	Username string
+	Password string
+}
+
+type ConfigEtcdAuth struct {
+	CaCert 	   string   `yaml:"ca_cert"`
+	ClientCert string   `yaml:"client_cert"`
+	ClientKey  string   `yaml:"client_key"`
+	PasswordAuth string `yaml:"password_auth"`
+	Username     string `yaml:"-"`
+	Password     string `yaml:"-"`
 }
 
 type ConfigEtcdClient struct {
 	Endpoints         []string
 	ConnectionTimeout time.Duration	`yaml:"connection_timeout"`
 	RequestTimeout    time.Duration `yaml:"request_timeout"`
+	RetryInterval     time.Duration `yaml:"retry_interval"`
 	Retries           uint64
-	Auth              ConfigEtcdCerts
+	Auth              ConfigEtcdAuth
 }
 
 type ConfigLock struct {
@@ -64,6 +73,22 @@ func getConfigFilePath() string {
 	return path
 }
 
+func getPasswordAuth(path string) (EtcdPasswordAuth, error) {
+	var a EtcdPasswordAuth
+
+	b, err := ioutil.ReadFile(path)
+	if err != nil {
+		return a, errors.New(fmt.Sprintf("Error reading the password auth file: %s", err.Error()))
+	}
+
+	err = yaml.Unmarshal(b, &a)
+	if err != nil {
+		return a, errors.New(fmt.Sprintf("Error parsing the password auth file: %s", err.Error()))
+	}
+
+	return a, nil
+}
+
 func getConfig() (Config, error) {
 	var c Config
 
@@ -74,6 +99,15 @@ func getConfig() (Config, error) {
 	err = yaml.Unmarshal(b, &c)
 	if err != nil {
 		return c, errors.New(fmt.Sprintf("Error parsing the configuration file: %s", err.Error()))
+	}
+
+	if c.EtcdClient.Auth.PasswordAuth != "" {
+		pAuth, pAuthErr := getPasswordAuth(c.EtcdClient.Auth.PasswordAuth)
+		if pAuthErr != nil {
+			return c, pAuthErr
+		}
+		c.EtcdClient.Auth.Username = pAuth.Username
+		c.EtcdClient.Auth.Password = pAuth.Password
 	}
 
 	if len(c.EtcdClient.Endpoints) == 0 {
