@@ -8,7 +8,6 @@ import (
   "strings"
 
   "github.com/Ferlab-Ste-Justine/etcd-sdk/client"
-  "github.com/Ferlab-Ste-Justine/etcd-sdk/keymodels"
   "github.com/gin-gonic/gin"
 )
 
@@ -23,7 +22,7 @@ func getLegacyStatePath(state string, config Config) string {
 func getLegacyState(c *gin.Context, cli *client.EtcdClient, config Config) {
 	statePath := getLegacyStatePath(c.Query("state"), config)
 
-	keyInfo, keyExists, keyErr := cli.GetKey(statePath)
+	keyInfo, keyErr := cli.GetKey(statePath, client.GetKeyOptions{})
 	if keyErr != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{
 			"status": "error",
@@ -31,7 +30,7 @@ func getLegacyState(c *gin.Context, cli *client.EtcdClient, config Config) {
 		})
 		return	
 	}
-	if !keyExists {
+	if !keyInfo.Found() {
 		c.JSON(http.StatusNotFound, gin.H{
 			"status": "not found",
 		})
@@ -50,12 +49,12 @@ func getLegacyState(c *gin.Context, cli *client.EtcdClient, config Config) {
 
 func clearLegacyState(c *gin.Context, cli *client.EtcdClient, config Config) {
 	statePath := getLegacyStatePath(c.Query("state"), config)
-	_, keyExists, keyErr := cli.GetKey(statePath)
+	keyInfo, keyErr := cli.GetKey(statePath, client.GetKeyOptions{})
 	if keyErr != nil {
 		fmt.Printf("Could not check for legacy state: %s\n", keyErr.Error())
 		return
 	}
-	if !keyExists {
+	if !keyInfo.Found() {
 		return
 	}
 
@@ -157,7 +156,7 @@ func GetHandlers(config Config, cli *client.EtcdClient) (Handlers, <-chan struct
 		}
 
 		state = fmt.Sprintf("%s/state", state)
-		putErr := cli.PutChunkedKey(&keymodels.ChunkedKeyPayload{
+		putErr := cli.PutChunkedKey(&client.ChunkedKeyPayload{
 			Key: state,
 			Value: c.Request.Body,
 			Size: c.Request.ContentLength,
@@ -240,13 +239,15 @@ func GetHandlers(config Config, cli *client.EtcdClient) (Handlers, <-chan struct
 	}
 
 	terminate := func(c *gin.Context) {
-		fmt.Println("Termination triggered via api")
+		if c != nil {
+			fmt.Println("Termination triggered via api")
 
-		c.JSON(http.StatusOK, gin.H{
-			"status": "ok",
-		})
+			c.JSON(http.StatusOK, gin.H{
+				"status": "ok",
+			})
+		}
 
-		terminateCh <- struct{}{}
+		close(terminateCh)
 	}
 
 	return Handlers{
