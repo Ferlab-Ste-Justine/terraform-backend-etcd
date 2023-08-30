@@ -72,7 +72,7 @@ func Serve(config Config, doneCh <-chan struct{}) <-chan error {
 		}
 
 		router := gin.Default()
-		server := &http.Server{
+		server = &http.Server{
 			Addr:    fmt.Sprintf("%s:%d", config.Server.Address, config.Server.Port),
 			Handler: router,
 		}
