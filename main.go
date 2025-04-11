@@ -86,6 +86,7 @@ func Serve(config Config, doneCh <-chan struct{}) <-chan error {
 			authorized.GET("/state", handlers.GetState)
 			authorized.PUT("/state", handlers.UpsertState)
 			authorized.DELETE("/state", handlers.DeleteState)
+			authorized.GET("/health", handlers.GetHealth)
 			if config.RemoteTerminiation {
 				authorized.POST("/termination", handlers.Terminate)
 			}
@@ -95,6 +96,7 @@ func Serve(config Config, doneCh <-chan struct{}) <-chan error {
 			router.GET("/state", handlers.GetState)
 			router.PUT("/state", handlers.UpsertState)
 			router.DELETE("/state", handlers.DeleteState)
+			router.GET("/health", handlers.GetHealth)
 			if config.RemoteTerminiation {
 				router.POST("/termination", handlers.Terminate)
 			}

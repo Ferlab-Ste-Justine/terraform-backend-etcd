@@ -72,6 +72,7 @@ type Handlers struct{
 	UpsertState gin.HandlerFunc
 	GetState    gin.HandlerFunc
 	DeleteState gin.HandlerFunc
+	GetHealth   gin.HandlerFunc
 	Terminate   gin.HandlerFunc
 }
 
@@ -238,6 +239,21 @@ func GetHandlers(config Config, cli *client.EtcdClient) (Handlers, <-chan struct
 		})
 	}
 
+	getHealth := func(c *gin.Context) {
+		_, err := cli.GetMembers(false)
+		if err != nil {
+			c.JSON(http.StatusInternalServerError, gin.H{
+				"status": "error",
+				"error": err.Error(),
+			})
+			return	
+		}
+
+		c.JSON(http.StatusOK, gin.H{
+			"status": "ok",
+		})
+	}
+
 	terminate := func(c *gin.Context) {
 		if c != nil {
 			fmt.Println("Termination triggered via api")
@@ -256,6 +272,7 @@ func GetHandlers(config Config, cli *client.EtcdClient) (Handlers, <-chan struct
 		UpsertState: upsertState,
 		GetState:    getState,
 		DeleteState: deleteState,
+		GetHealth:   getHealth,
 		Terminate:   terminate,
 	}, terminateCh
 }
