@@ -195,7 +195,7 @@ func TestServe(t *testing.T) {
 		return
 	}
 
-	passwordv2, passwordv2Err := os.ReadFile("./test/client/output/password")
+	passwordv2, passwordv2Err := os.ReadFile(path.Join(outputDir, "password"))
 	if passwordv2Err != nil {
 		t.Errorf("Error occured retrieving content of the password file: %s", passwordv2Err.Error())
 		return
@@ -212,7 +212,7 @@ func TestServe(t *testing.T) {
 		return
 	}
 
-	exists, existsErr = PathExists("./test/client/output/large_file_copy.txt")
+	exists, existsErr = PathExists(path.Join(outputDir, "large_file_copy.txt"))
 	if existsErr != nil {
 		t.Errorf("Error occured while trying to determine if a file exists: %s", existsErr.Error())
 		return
@@ -222,7 +222,7 @@ func TestServe(t *testing.T) {
 		return
 	}
 
-	exists, existsErr = PathExists("./test/client/output/password")
+	exists, existsErr = PathExists(path.Join(outputDir, "password"))
 	if existsErr != nil {
 		t.Errorf("Error occured while trying to determine if a file exists: %s", existsErr.Error())
 		return
